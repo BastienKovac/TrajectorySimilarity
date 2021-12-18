@@ -1,12 +1,37 @@
 class Point:
 
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
+    def __init__(self, x: float, y: float) -> None:
+        self._x = x
+        self._y = y
+        self._time = -1
 
-    def __int__(self, x: float, y: float, time: float):
+    def __int__(self, x: float, y: float, time: float) -> None:
         self.__init__(x, y)
-        self.time = time
+        self._time = time
+
+    @property
+    def x(self) -> float:
+        return self._x
+
+    @x.setter
+    def x(self, x: float) -> None:
+        self._x = x
+
+    @property
+    def y(self) -> float:
+        return self._y
+
+    @y.setter
+    def y(self, y: float) -> None:
+        self._y = y
+
+    @property
+    def time(self) -> float:
+        return self._time
+
+    @time.setter
+    def time(self, time: float) -> None:
+        self._time = time
 
     def is_timed(self) -> bool:
-        return hasattr(self, 'time')
+        return self.time != -1
