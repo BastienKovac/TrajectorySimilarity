@@ -1,12 +1,8 @@
 class Point:
 
-    def __init__(self, x: float, y: float) -> None:
+    def __init__(self, x: float, y: float, time: float = -1) -> None:
         self._x = x
         self._y = y
-        self._time = -1
-
-    def __int__(self, x: float, y: float, time: float) -> None:
-        self.__init__(x, y)
         self._time = time
 
     @property
