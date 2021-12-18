@@ -1,2 +1,4 @@
+from src import BASE_IMAGE_PATH
+
 if __name__ == '__main__':
-    print("Hello")
+    print(BASE_IMAGE_PATH)
