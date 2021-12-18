@@ -1,4 +1,4 @@
-from src import BASE_IMAGE_PATH
+from src.gui.MainWindow import display
 
 if __name__ == '__main__':
-    print(BASE_IMAGE_PATH)
+    display()

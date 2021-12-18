@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from src.core.Trajectory import Trajectory
 
+from enum import Enum, unique
+
 
 class TrajectorySimilarityCalculator(ABC):
 
@@ -18,3 +20,37 @@ class TrajectorySimilarityCalculator(ABC):
     @abstractmethod
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         raise NotImplementedError
+
+
+class _DTWCalculator(TrajectorySimilarityCalculator):
+
+    def __init__(self):
+        super(TrajectorySimilarityCalculator, self).__init__("DTW Calculator")
+
+    def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
+        raise NotImplementedError
+
+
+class _SDTWCalculator(TrajectorySimilarityCalculator):
+
+    def __init__(self):
+        super(TrajectorySimilarityCalculator, self).__init__("SDTW Calculator")
+
+    def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
+        raise NotImplementedError
+
+
+class _HausdorffCalculator(TrajectorySimilarityCalculator):
+
+    def __init__(self):
+        super(TrajectorySimilarityCalculator, self).__init__("Hausdorff Calculator")
+
+    def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
+        raise NotImplementedError
+
+
+@unique
+class Calculator(Enum):
+    DTW = _DTWCalculator()
+    SDTW = _SDTWCalculator()
+    HAUSDORFF = _HausdorffCalculator()
