@@ -37,6 +37,7 @@ class MainWindow(PanedWindow):
 
         self._context = CalculatorContext(Calculator.DTW.value)
         self._query = QUERIES_FULL[0]
+        self._result = None
 
         self.reset_image()
 
@@ -50,7 +51,10 @@ class MainWindow(PanedWindow):
 
         img = imread(BASE_IMAGE_PATH)
         self._plot.imshow(img)
+
         self.plot_trajectory(self._query, color='red')
+        if self._result:
+            self.plot_trajectory(self._result, color='blue')
 
         query_patch = mpatches.Patch(color='red', label="Queried Trajectory")
         result_patch = mpatches.Patch(color='blue', label="Closest computed Trajectory")
@@ -72,6 +76,8 @@ class MainWindow(PanedWindow):
 
         def method_selection(event):
             self._context.calculator = Calculator.from_name(name=current_method.get())
+            self._result = None
+            self.reset_image()
 
         menu = OptionMenu(configuration, current_method, *[option.name for option in Calculator],
                           command=method_selection)
@@ -91,6 +97,7 @@ class MainWindow(PanedWindow):
             elif "Sparse" in selected:
                 self._query = QUERIES_SPARSE[index]
 
+            self._result = None
             self.reset_image()
 
         options = []
@@ -105,10 +112,14 @@ class MainWindow(PanedWindow):
         def compute_button():
             all_trajectories = [t for t in TRAJECTORY_TIMED]
             if not self._context.calculator.needs_timed_trajectory():
-                all_trajectories.append([t for t in TRAJECTORY_UNTIMED])
+                all_trajectories.extend([t for t in TRAJECTORY_UNTIMED])
 
             result = self._context.compute_similarity(self._query, all_trajectories)
-            self.plot_trajectory(result, color='blue')
+
+            sorted_result = sorted(result.items(), key=lambda x: x[1])
+            self._result = sorted_result[0][0]
+
+            self.reset_image()
 
         button = Button(configuration, text='Find closest trajectory', command=compute_button)
 
