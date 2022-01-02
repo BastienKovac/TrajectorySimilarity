@@ -1,7 +1,11 @@
 from abc import ABC, abstractmethod
 from src.core.Trajectory import Trajectory
 
-from enum import Enum, unique
+from enum import Enum
+
+DTW_NAME = "DTW Calculator"
+SDTW_NAME = "SDTW Calculator"
+HAUSDORFF_NAME = "Hausdorff Calculator"
 
 
 class TrajectorySimilarityCalculator(ABC):
@@ -28,7 +32,7 @@ class TrajectorySimilarityCalculator(ABC):
 class _DTWCalculator(TrajectorySimilarityCalculator):
 
     def __init__(self):
-        super().__init__("DTW Calculator")
+        super().__init__(DTW_NAME)
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         raise NotImplementedError
@@ -37,7 +41,7 @@ class _DTWCalculator(TrajectorySimilarityCalculator):
 class _SDTWCalculator(TrajectorySimilarityCalculator):
 
     def __init__(self):
-        super().__init__("SDTW Calculator")
+        super().__init__(SDTW_NAME)
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         raise NotImplementedError
@@ -46,14 +50,30 @@ class _SDTWCalculator(TrajectorySimilarityCalculator):
 class _HausdorffCalculator(TrajectorySimilarityCalculator):
 
     def __init__(self):
-        super().__init__("Hausdorff Calculator")
+        super().__init__(HAUSDORFF_NAME)
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         raise NotImplementedError
 
 
-@unique
-class Calculator(Enum):
+class FinalMeta(type(Enum), type(ABC)):
+    pass
+
+
+class Calculator(TrajectorySimilarityCalculator, Enum, metaclass=FinalMeta):
     DTW = _DTWCalculator()
     SDTW = _SDTWCalculator()
     HAUSDORFF = _HausdorffCalculator()
+
+    def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
+        return self.compute_similarity(trajectory_a, trajectory_b)
+
+    def from_name(name: str) -> TrajectorySimilarityCalculator:
+        if name == DTW_NAME:
+            return Calculator.DTW
+        elif name == SDTW_NAME:
+            return Calculator.SDTW
+        elif name == HAUSDORFF_NAME:
+            return Calculator.HAUSDORFF
+        else:
+            raise RuntimeError("Unknown calculator: {}".format(name))

@@ -1,5 +1,4 @@
-import TrajectorySimilarityCalculator
-
+from src.algos.TrajectorySimilarityCalculator import TrajectorySimilarityCalculator
 from typing import List, Dict
 from src.core.Trajectory import Trajectory
 
