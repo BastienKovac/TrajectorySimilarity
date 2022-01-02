@@ -1,17 +1,21 @@
-from tkinter import Tk, StringVar, Variable
-from tkinter import Frame, OptionMenu, PanedWindow, Label
+from tkinter import Tk, StringVar
+from tkinter import Frame, OptionMenu, PanedWindow, Label, Button
 
 from src.algos.TrajectorySimilarityCalculator import Calculator
 from src.algos.CalculatorContext import CalculatorContext
 from src.core.Trajectory import Trajectory
 
-from src import BASE_IMAGE_PATH, TRAJECTORY_TIMED
+from src import BASE_IMAGE_PATH, QUERIES_FULL, QUERIES_SPARSE, TRAJECTORY_TIMED, TRAJECTORY_UNTIMED
 
-import matplotlib
-matplotlib.use("TkAgg")
+import matplotlib.patches as mpatches
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.image import imread
+
+import re
+
+import matplotlib
+matplotlib.use("TkAgg")
 
 
 def display():
@@ -24,15 +28,35 @@ class MainWindow(PanedWindow):
 
     def __init__(self, root: Tk):
         super().__init__()
-        self._init_ui(root)
-
-        self._context = CalculatorContext(Calculator.DTW.value)
 
         self._figure = None
         self._plot = None
+        self._canvas = None
 
-    def plot_trajectory(self, trajectory: Trajectory):
-        self._plot.plot([p.x for p in trajectory.points], [p.y for p in trajectory.points])
+        self._init_ui(root)
+
+        self._context = CalculatorContext(Calculator.DTW.value)
+        self._query = QUERIES_FULL[0]
+
+        self.reset_image()
+
+    def plot_trajectory(self, trajectory: Trajectory, color: str = 'red'):
+        self._plot.plot([p.x for p in trajectory.points], [p.y for p in trajectory.points], c=color)
+
+    def reset_image(self):
+        self._figure.clf()
+
+        self._plot = self._figure.add_subplot(111)
+
+        img = imread(BASE_IMAGE_PATH)
+        self._plot.imshow(img)
+        self.plot_trajectory(self._query, color='red')
+
+        query_patch = mpatches.Patch(color='red', label="Queried Trajectory")
+        result_patch = mpatches.Patch(color='blue', label="Closest computed Trajectory")
+
+        self._plot.legend(handles=[query_patch, result_patch])
+        self._canvas.draw()
 
     def _init_ui(self, root: Tk):
         self.master.title("Trajectory Similarity Calculator")
@@ -52,17 +76,44 @@ class MainWindow(PanedWindow):
         menu = OptionMenu(configuration, current_method, *[option.name for option in Calculator],
                           command=method_selection)
 
-        label = Label(configuration, text="Selected method")
+        label = Label(configuration, text="Selected method", anchor='w')
+
+        # Select request
+        query_label = Label(configuration, text="Select Query", anchor='w')
+
+        current_query = StringVar(value="Query Full ({})".format(1))
+
+        def query_selection(event):
+            selected = current_query.get()
+            index = int(re.search(r'\d+', selected).group()) - 1
+            if "Full" in selected:
+                self._query = QUERIES_FULL[index]
+            elif "Sparse" in selected:
+                self._query = QUERIES_SPARSE[index]
+
+            self.reset_image()
+
+        options = []
+        for i in range(len(QUERIES_FULL)):
+            options.append("Query Full ({})".format(i + 1))
+        for i in range(len(QUERIES_SPARSE)):
+            options.append("Query Sparse ({})".format(i + 1))
+
+        query_menu = OptionMenu(configuration, current_query, *options, command=query_selection)
+
+        # Find closest trajectory button
+        def compute_button():
+            all_trajectories = [t for t in TRAJECTORY_TIMED]
+            if not self._context.calculator.needs_timed_trajectory():
+                all_trajectories.append([t for t in TRAJECTORY_UNTIMED])
+
+            result = self._context.compute_similarity(self._query, all_trajectories)
+            self.plot_trajectory(result, color='blue')
+
+        button = Button(configuration, text='Find closest trajectory', command=compute_button)
 
         # Image
         self._figure = Figure()
-        self._plot = self._figure.add_subplot(111)
-
-        img = imread(BASE_IMAGE_PATH)
-        self._plot.imshow(img)
-
-        for t in TRAJECTORY_TIMED:
-            self.plot_trajectory(t)
 
         # Layouting
         root.grid_rowconfigure(0, weight=1)
@@ -81,7 +132,12 @@ class MainWindow(PanedWindow):
         label.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
         menu.grid(row=0, column=1, sticky='nsew', padx=10, pady=10)
 
+        query_label.grid(row=1, column=0, sticky='nsew', padx=10, pady=10)
+        query_menu.grid(row=1, column=1, sticky='nsew', padx=10, pady=10)
+
+        button.grid(row=2, column=1, sticky='nsew', padx=10, pady=10)
+
         image.grid(row=0, column=1, sticky='nsew')
 
-        canvas = FigureCanvasTkAgg(self._figure, master=image)
-        canvas.get_tk_widget().pack(side="top", fill='both', expand=True)
+        self._canvas = FigureCanvasTkAgg(self._figure, master=image)
+        self._canvas.get_tk_widget().pack(side="top", fill='both', expand=True)

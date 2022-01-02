@@ -24,6 +24,9 @@ class TrajectorySimilarityCalculator(ABC):
     def __str__(self) -> str:
         return self.name
 
+    def needs_timed_trajectory(self) -> bool:
+        return False
+
     @abstractmethod
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         raise NotImplementedError
@@ -42,6 +45,9 @@ class _SDTWCalculator(TrajectorySimilarityCalculator):
 
     def __init__(self):
         super().__init__(SDTW_NAME)
+
+    def needs_timed_trajectory(self) -> bool:
+        return True
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         raise NotImplementedError
