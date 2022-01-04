@@ -67,11 +67,6 @@ class MainWindow(PanedWindow):
                 if trajectory != self._result:
                     self.plot_trajectory(trajectory, color='yellow')
 
-            if not self._context.calculator.needs_timed_trajectory():
-                for trajectory in TRAJECTORY_UNTIMED:
-                    if trajectory != self._result:
-                        self.plot_trajectory(trajectory, color='yellow')
-
             legends.append(mpatches.Patch(color='yellow', label="Other trajectories"))
 
         self._plot.legend(handles=legends)
@@ -126,7 +121,7 @@ class MainWindow(PanedWindow):
         # Find closest trajectory button
         def compute_button():
             all_trajectories = [t for t in TRAJECTORY_TIMED]
-            if not self._context.calculator.needs_timed_trajectory():
+            if self._context.calculator.needs_timed_trajectory():
                 all_trajectories.extend([t for t in TRAJECTORY_UNTIMED])
 
             result = self._context.compute_similarity(self._query, all_trajectories)
