@@ -85,7 +85,7 @@ class MainWindow(PanedWindow):
         current_method = StringVar(value=Calculator.DTW.name)
 
         def method_selection(event):
-            self._context.calculator = Calculator.from_name(name=current_method.get())
+            self._context.calculator = Calculator.from_name(name=current_method.get()).value
             self._result = None
             self.reset_image()
 

@@ -15,11 +15,7 @@ class DTWCalculator(TrajectorySimilarityCalculator):
         a, b = trajectory_a.points, trajectory_b.points
         n, m = len(a), len(b)
 
-        dtw_matrix = np.ones((n + 1, m + 1))
-
-        for i in range(n + 1):
-            for j in range(m + 1):
-                dtw_matrix[i, j] = np.inf
+        dtw_matrix = np.ones((n + 1, m + 1)) * np.inf
         dtw_matrix[0, 0] = 0
 
         for i in range(1, n + 1):
