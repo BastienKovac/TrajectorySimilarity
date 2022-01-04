@@ -1,8 +1,7 @@
 from tkinter import Tk, StringVar
 from tkinter import Frame, OptionMenu, PanedWindow, Label, Button
 
-from src.algos.TrajectorySimilarityCalculator import Calculator
-from src.algos.CalculatorContext import CalculatorContext
+from src.algos.CalculatorContext import CalculatorContext, Calculator
 from src.core.Trajectory import Trajectory
 
 from src import BASE_IMAGE_PATH, QUERIES_FULL, QUERIES_SPARSE, TRAJECTORY_TIMED, TRAJECTORY_UNTIMED
