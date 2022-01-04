@@ -1,5 +1,5 @@
-from tkinter import Tk, StringVar
-from tkinter import Frame, OptionMenu, PanedWindow, Label, Button
+from tkinter import Tk, StringVar, IntVar
+from tkinter import Frame, OptionMenu, PanedWindow, Label, Button, Checkbutton
 
 from src.algos.CalculatorContext import CalculatorContext, Calculator
 from src.core.Trajectory import Trajectory
@@ -38,6 +38,8 @@ class MainWindow(PanedWindow):
         self._query = QUERIES_FULL[0]
         self._result = None
 
+        self._debug = False
+
         self.reset_image()
 
     def plot_trajectory(self, trajectory: Trajectory, color: str = 'red'):
@@ -52,13 +54,27 @@ class MainWindow(PanedWindow):
         self._plot.imshow(img)
 
         self.plot_trajectory(self._query, color='red')
-        if self._result:
-            self.plot_trajectory(self._result, color='blue')
 
         query_patch = mpatches.Patch(color='red', label="Queried Trajectory")
-        result_patch = mpatches.Patch(color='blue', label="Closest computed Trajectory")
+        legends = [query_patch]
 
-        self._plot.legend(handles=[query_patch, result_patch])
+        if self._result:
+            self.plot_trajectory(self._result, color='blue')
+            legends.append(mpatches.Patch(color='blue', label="Closest computed Trajectory"))
+
+        if self._debug:
+            for trajectory in TRAJECTORY_TIMED:
+                if trajectory != self._result:
+                    self.plot_trajectory(trajectory, color='yellow')
+
+            if not self._context.calculator.needs_timed_trajectory():
+                for trajectory in TRAJECTORY_UNTIMED:
+                    if trajectory != self._result:
+                        self.plot_trajectory(trajectory, color='yellow')
+
+            legends.append(mpatches.Patch(color='yellow', label="Other trajectories"))
+
+        self._plot.legend(handles=legends)
         self._canvas.draw()
 
     def _init_ui(self, root: Tk):
@@ -122,6 +138,16 @@ class MainWindow(PanedWindow):
 
         button = Button(configuration, text='Find closest trajectory', command=compute_button)
 
+        # Display other trajectories
+        debug = IntVar()
+
+        def checkbox_callback():
+            self._debug = debug.get() == 1
+            self.reset_image()
+
+        checkbox = Checkbutton(configuration, text='Display all trajectories', variable=debug, onvalue=1, offvalue=0,
+                               command=checkbox_callback)
+
         # Image
         self._figure = Figure()
 
@@ -139,13 +165,15 @@ class MainWindow(PanedWindow):
         configuration.grid_columnconfigure(0, weight=1)
         configuration.grid_columnconfigure(1, weight=1)
 
-        label.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
-        menu.grid(row=0, column=1, sticky='nsew', padx=10, pady=10)
+        label.grid(row=0, column=0, sticky='nsw', padx=10, pady=10)
+        menu.grid(row=0, column=1, sticky='nsw', padx=10, pady=10)
 
-        query_label.grid(row=1, column=0, sticky='nsew', padx=10, pady=10)
-        query_menu.grid(row=1, column=1, sticky='nsew', padx=10, pady=10)
+        query_label.grid(row=1, column=0, sticky='nsw', padx=10, pady=10)
+        query_menu.grid(row=1, column=1, sticky='nsw', padx=10, pady=10)
 
-        button.grid(row=2, column=1, sticky='nsew', padx=10, pady=10)
+        button.grid(row=2, column=1, sticky='nsw', padx=10, pady=10)
+
+        checkbox.grid(row=3, column=0, sticky='nsw', padx=10, pady=10)
 
         image.grid(row=0, column=1, sticky='nsew')
 
