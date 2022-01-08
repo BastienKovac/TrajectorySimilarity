@@ -33,10 +33,30 @@ class SDTWCalculator(TrajectorySimilarityCalculator):
 
         return dist
 
-    def _compute_temporal_distance(self, a: Point, b: Point) -> float:
-        return 0
+    def _compute_temporal_distance(self, a: list, b: list, i: int, j: int) -> float:
+        if a[i].time > b[j].time:
+            before = b[j]
+            after = a[i]
 
-    def _compute_segment_segment_distance(self, a: Point, b: Point, ps_dist: np.ndarray, t_dist: np.ndarray) -> float:
+            previous_b = after if i == 0 else a[i - 1]  # Point before the later one
+        else:
+            before = a[i]
+            after = b[j]
+
+            previous_b = after if j == 0 else b[j - 1]  # Point before the later one
+
+        delta = before.time - after.time
+
+        vx = (after.x - previous_b.x) / delta
+        vy = (after.y - previous_b.y) / delta
+
+        xb = previous_b.x + vx * (after.time + delta - previous_b.time)
+        yb = previous_b.y + vy * (after.time + delta - previous_b.time)
+
+        return np.sqrt((before.x - xb) ** 2 + (before.y - yb) ** 2)
+
+    def _compute_segment_segment_distance(self, a: list, b: list, i: int, j: int, ps_dist: np.ndarray,
+                                          t_dist: np.ndarray) -> float:
         return 0
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
@@ -44,32 +64,34 @@ class SDTWCalculator(TrajectorySimilarityCalculator):
         n, m = len(a), len(b)
 
         ps_dist = np.zeros((n, m))
-        for i in range(0, n - 1):
-            for j in range(0, m - 1):
-                ab_dist = self._compute_point_segment_distance(a[i], self._mid_point(b[j - 1], b[j]),
-                                                               self._mid_point(b[j], b[j + 1]))
+        for i in range(0, n):
+            for j in range(0, m):
+                ab_dist = self._compute_point_segment_distance(a[i],
+                                                               b[j] if j == 0 else self._mid_point(b[j - 1], b[j]),
+                                                               b[j] if j == m - 1 else self._mid_point(b[j], b[j + 1]))
 
-                ba_dist = self._compute_point_segment_distance(b[j], self._mid_point(a[i - 1], a[i]),
-                                                               self._mid_point(a[i], a[i + 1]))
+                ba_dist = self._compute_point_segment_distance(b[j],
+                                                               a[i] if i == 0 else self._mid_point(a[i - 1], a[i]),
+                                                               a[i] if i == n - 1 else self._mid_point(a[i], a[i + 1]))
                 ps_dist[i, j] = ab_dist + ba_dist
 
         t_dist = np.zeros((n, m))
-        for i in range(1, n - 1):
-            for j in range(1, m - 1):
-                t_dist[i, j] = self._compute_temporal_distance(a[i], b[j])
-
-        s_dist = np.zeros((n, m))
         for i in range(0, n):
             for j in range(0, m):
-                s_dist[i, j] = self._compute_segment_segment_distance(a[i], b[i], ps_dist, t_dist)
+                t_dist[i, j] = self._compute_temporal_distance(a, b, i, j)
+
+        s_dist = np.zeros((n - 1, m - 1))
+        for i in range(0, n - 1):
+            for j in range(0, m - 1):
+                s_dist[i, j] = self._compute_segment_segment_distance(a, b, i, j, ps_dist, t_dist)
 
         sdtw_matrix = np.ones((n, m)) * np.inf
         sdtw_matrix[0, 0] = 0
 
-        for i in range(1, n):
-            for j in range(1, m):
+        for i in range(1, n - 1):
+            for j in range(1, m - 1):
                 sdtw_matrix[i, j] = s_dist[i, j] + min(sdtw_matrix[i - 1, j - 1],
                                                        sdtw_matrix[i - 1, j], sdtw_matrix[i, j - 1])
 
-        return sdtw_matrix[n - 1, m -1]
+        return sdtw_matrix[n - 2, m - 2]
 
