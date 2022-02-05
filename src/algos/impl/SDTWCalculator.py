@@ -47,8 +47,8 @@ class SDTWCalculator(TrajectorySimilarityCalculator):
 
         delta = before.time - after.time
 
-        vx = (after.x - previous_b.x) / delta
-        vy = (after.y - previous_b.y) / delta
+        vx = (after.x - previous_b.x) / delta if delta != 0 else 0
+        vy = (after.y - previous_b.y) / delta if delta != 0 else 0
 
         xb = previous_b.x + vx * (after.time + delta - previous_b.time)
         yb = previous_b.y + vy * (after.time + delta - previous_b.time)
@@ -60,6 +60,8 @@ class SDTWCalculator(TrajectorySimilarityCalculator):
         return 0
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
+        super().compute_similarity(trajectory_a, trajectory_b)
+
         a, b = trajectory_a.points, trajectory_b.points
         n, m = len(a), len(b)
 

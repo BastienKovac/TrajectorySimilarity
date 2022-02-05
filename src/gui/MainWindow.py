@@ -121,7 +121,7 @@ class MainWindow(PanedWindow):
         # Find closest trajectory button
         def compute_button():
             all_trajectories = [t for t in TRAJECTORY_TIMED]
-            if self._context.calculator.needs_timed_trajectory():
+            if not self._context.calculator.needs_timed_trajectory():
                 all_trajectories.extend([t for t in TRAJECTORY_UNTIMED])
 
             result = self._context.compute_similarity(self._query, all_trajectories)

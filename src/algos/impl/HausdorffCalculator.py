@@ -12,6 +12,8 @@ class HausdorffCalculator(TrajectorySimilarityCalculator):
         super().__init__(HAUSDORFF_NAME)
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
+        super().compute_similarity(trajectory_a, trajectory_b)
+
         h = 0
         for pa in trajectory_a.points:
             shortest = np.inf

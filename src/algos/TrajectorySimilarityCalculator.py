@@ -24,5 +24,4 @@ class TrajectorySimilarityCalculator(ABC):
     @abstractmethod
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         if self.needs_timed_trajectory() and (not trajectory_a.is_timed() or not trajectory_b.is_timed()):
-            raise RuntimeError("{} needs timed trajectories to work")
-        raise NotImplementedError
+            raise RuntimeError("{} needs timed trajectories to work".format(self.name))

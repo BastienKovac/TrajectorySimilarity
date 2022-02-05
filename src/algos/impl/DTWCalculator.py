@@ -12,6 +12,8 @@ class DTWCalculator(TrajectorySimilarityCalculator):
         super().__init__(DTW_NAME)
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
+        super().compute_similarity(trajectory_a, trajectory_b)
+
         a, b = trajectory_a.points, trajectory_b.points
         n, m = len(a), len(b)
 
