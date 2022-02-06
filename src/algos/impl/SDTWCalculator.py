@@ -57,7 +57,22 @@ class SDTWCalculator(TrajectorySimilarityCalculator):
 
     def _compute_segment_segment_distance(self, a: list, b: list, i: int, j: int, ps_dist: np.ndarray,
                                           t_dist: np.ndarray) -> float:
-        return 0
+
+        time_sensitivity = 1
+
+        d_st_current = ps_dist[i, j] + time_sensitivity * t_dist[i, j]
+        d_st_next = ps_dist[i + 1, j + 1] + time_sensitivity * t_dist[i + 1, j + 1]
+
+        d_st = d_st_current + d_st_next
+
+        theta = np.abs(np.arctan2(a[i + 1].y - a[i].y, a[i + 1].x - a[i].x) -
+                       np.arctan2(b[j + 1].y - b[j].y, b[j + 1].x - b[j].x))
+
+        omega = 1
+
+        f = d_st / np.amax(t_dist) * (omega + theta)
+
+        return f * d_st
 
     def compute_similarity(self, trajectory_a: Trajectory, trajectory_b: Trajectory) -> float:
         super().compute_similarity(trajectory_a, trajectory_b)
