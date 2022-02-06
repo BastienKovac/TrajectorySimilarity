@@ -12,6 +12,7 @@ from matplotlib.figure import Figure
 from matplotlib.image import imread
 
 import re
+import time
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -118,8 +119,12 @@ class MainWindow(PanedWindow):
 
         query_menu = OptionMenu(configuration, current_query, *options, command=query_selection)
 
+        time_label = Label(configuration, text="Last Execution time: ", anchor='w')
+
         # Find closest trajectory button
         def compute_button():
+            start = time.time()
+
             all_trajectories = [t for t in TRAJECTORY_TIMED]
             if not self._context.calculator.needs_timed_trajectory():
                 all_trajectories.extend([t for t in TRAJECTORY_UNTIMED])
@@ -129,6 +134,9 @@ class MainWindow(PanedWindow):
             sorted_result = sorted(result.items(), key=lambda x: x[1])
             self._result = sorted_result[0][0]
 
+            elapsed_time = time.time() - start
+
+            time_label['text'] = "Last Execution time: {} ms".format(elapsed_time * 1000.0)
             self.reset_image()
 
         button = Button(configuration, text='Find closest trajectory', command=compute_button)
@@ -169,6 +177,8 @@ class MainWindow(PanedWindow):
         button.grid(row=2, column=1, sticky='nsw', padx=10, pady=10)
 
         checkbox.grid(row=3, column=0, sticky='nsw', padx=10, pady=10)
+
+        time_label.grid(row=4, column=0, sticky='nsw', padx=10, pady=10)
 
         image.grid(row=0, column=1, sticky='nsew')
 
